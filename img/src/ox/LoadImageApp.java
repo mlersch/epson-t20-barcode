@@ -35,6 +35,7 @@ package ox;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
 import java.awt.image.*;
 import java.io.*;
 import javax.swing.*;
@@ -107,7 +108,38 @@ public class LoadImageApp extends Component {
 
 
 
+        // Raster
+
+
+
+
+        for(int i=10; i <= 600; i += 10) {
+            GeneralPath theShape = new GeneralPath();
+            theShape.moveTo(i, 100);
+            theShape.lineTo(i, 350);
+            theShape.closePath();
+            g2d.setStroke(new BasicStroke(1f));
+            g2d.draw(theShape);
+        }
+        GeneralPath theShape = new GeneralPath();
+        theShape.moveTo(0, 0);
+        theShape.lineTo(599, 0);
+        theShape.lineTo(599, 399);
+        theShape.lineTo(0, 399);
+        theShape.lineTo(0, 0);
+        theShape.closePath();
+        g2d.setStroke(new BasicStroke(1f));
+        g2d.draw(theShape);
+
+
+       // g2d.scale(100, 100);
+
+
+
     }
+
+
+
 
     public Dimension getPreferredSize() {
         if (img == null) {
