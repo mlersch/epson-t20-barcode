@@ -33,7 +33,7 @@ public class EpsonESCPOSPrinter {
 	private static short product_id = 0x0e15;	//3605 in decimal, default is TM-T20II
 
 	// default values
-	private static int width = 576;  // We print 90 deg rotated
+	private static int width = 600;  // We print 90 deg rotated
 	
 	/* download graphic data to graphic buffer (TM-T20/II)
 	 * Hex 1D 38 4C p1 p2 p3 p4 30 53 a kc1 kc2 b xL xH yL yH [c d1...dk]1...[c d1...dk]b
@@ -127,10 +127,10 @@ public class EpsonESCPOSPrinter {
 		usbEndpoint = usbInterface.getUsbEndpoint((byte) 1);
 		System.out.println("Printer started");
 		
-		width = SelfPi.printerdots;  
-		SET_SPEED = new int[] {0x1d, 0x28, 0x4b, 0x02, 0x00, 0x32, SelfPi.printerSpeed};		
+		width = App.printerdots;  
+		SET_SPEED = new int[] {0x1d, 0x28, 0x4b, 0x02, 0x00, 0x32, App.printerSpeed};		
 		
-		initPrinter(SelfPi.printDensity, SelfPi.printerSpeed);
+		initPrinter(App.printDensity, App.printerSpeed);
 		System.out.println("Printer configured and resetting...");
 		
 		try { Thread.sleep(5000); } catch (InterruptedException e) {}
@@ -179,8 +179,8 @@ public class EpsonESCPOSPrinter {
 				0x1D, 0x28, 0x45, 
 				0x07, 0x00,
 				0x05, 
-				0x05, (0x00FF & SelfPi.printDensity), ((0xFF00 & SelfPi.printDensity) >>> 8),
-				0x06, (0x00FF & SelfPi.printerSpeed), 0x00
+				0x05, (0x00FF & App.printDensity), ((0xFF00 & App.printDensity) >>> 8),
+				0x06, (0x00FF & App.printerSpeed), 0x00
 				};		
 		
 		if (usbPrinting != null && usbPrinting.isAlive()) {
@@ -257,7 +257,7 @@ public class EpsonESCPOSPrinter {
 	}
 	
 	public void cut(){
-		if (SelfPi.DEBUG) {
+		if (App.DEBUG) {
 			System.out.println("DEBUG: Printer: cut" );
 			return;
 		}
@@ -302,9 +302,9 @@ public class EpsonESCPOSPrinter {
 			}
 		}
 	}
-        
+        /*
 	public void print(File imageFile){
-		if (SelfPi.DEBUG) {
+		if (App.DEBUG) {
 			System.out.println("DEBUG: Printer: print file "+imageFile.getAbsolutePath());
 			return;
 		}
@@ -412,9 +412,9 @@ public class EpsonESCPOSPrinter {
 			sent = pipe.syncSubmit(getCommand_DL_TO_PRINTER_BUF(width, height));
 			System.out.println(sent + " bytes sent to printer: Download data to printer buffer command");
 
-			sent = pipe.syncSubmit(Dithering.getDitheredMonochrom(SelfPi.ditheringMethod,
+			sent = pipe.syncSubmit(Dithering.getDitheredMonochrom(App.ditheringMethod,
 					pixList, width, height, 
-					SelfPi.normalyseHistogram, SelfPi.gamma));
+					App.normalyseHistogram, App.gamma));
 			System.out.println(sent + " bytes sent to printer: Image Data bytes");
 
 			sent = pipe.syncSubmit(getByteArray(PRINT_PRINTER_BUFFER));
@@ -434,10 +434,10 @@ public class EpsonESCPOSPrinter {
 				e.printStackTrace();
 			}
 		}
-	}        
+	}  */      
 	
 	public void print(BufferedImage image){
-		if (SelfPi.DEBUG) {
+		if (App.DEBUG) {
 			System.out.println("DEBUG: Printer: print buffered Image");
 			return;
 		}
@@ -458,6 +458,7 @@ public class EpsonESCPOSPrinter {
 			System.out.println(height + "x" + width + " -- " + TARGET_WIDTH);
 			
                         //if (width < height) {	// we have to rotate to save paper
+                        /*
                                 BufferedImage imageRotated = new BufferedImage(height, width, imageGrayscale.getType());
                                 g = imageRotated.createGraphics();
                                 g.rotate(Math.PI/2);
@@ -472,15 +473,19 @@ public class EpsonESCPOSPrinter {
                                 g.drawImage(imageRotated, 0, 0, width, height, null);
                                 g.dispose();
                                 image = imageResized;
-                        /*} else { // no need to rotate
+                        */
+                        //} else { // no need to rotate
                                 // fit width dimension to %8
+                                
+                                /*
                                 BufferedImage imageResized = new BufferedImage(((width/8)*8), height, imageGrayscale.getType());
                                 g = imageResized.createGraphics();
                                 g.drawImage(imageGrayscale, 0, 0, width, height, null);
                                 g.dispose();
                                 image = imageResized;
+                                */
 
-                        }*/
+                        //}
                                 
 			
 			
@@ -507,11 +512,11 @@ public class EpsonESCPOSPrinter {
 			sent = pipe.syncSubmit(getCommand_DL_TO_PRINTER_BUF(width, height));
 			System.out.println(sent + " bytes sent to printer: Download data to printer buffer command");
 
-			//sent = pipe.syncSubmit(Dithering.getDitheredMonochrom(SelfPi.ditheringMethod,
+			//sent = pipe.syncSubmit(Dithering.getDitheredMonochrom(App.ditheringMethod,
 			//		pixList, width, height, 
-                        //			SelfPi.normalyseHistogram, SelfPi.gamma));
+                        //			App.normalyseHistogram, App.gamma));
                 
-                        sent = pipe.syncSubmit(Dithering.getDitheredBitsInBytes(pixList, width, height));
+                        sent = pipe.syncSubmit(getBitsInBytes(pixList, width, height));
 			System.out.println(sent + " bytes sent to printer: Image Data bytes");
 
 			sent = pipe.syncSubmit(getByteArray(PRINT_PRINTER_BUFFER));
@@ -566,6 +571,27 @@ public class EpsonESCPOSPrinter {
 		}
 		return b;
 	}
+        
+        public static byte[] getBitsInBytes(int[] pixList, int imgWidth, int imgHeight) {
+		
+		//generate image with pixel bit in bytes
+		byte[] pixBytes = new byte[(imgWidth/8) * imgHeight ];
+
+		int mask = 0x01;
+		int x, y;
+		for (int i = 0; i < pixBytes.length; i++) {
+			for (int j = 0; j < 8; j++) {
+				mask = 0b10000000 >>> j;
+				x = ( i%(imgWidth/8)*8 ) +j  ;
+				y = i / (imgWidth/8);
+				if ( pixList[x+(y*imgWidth)] == 0 ) {
+					pixBytes[i] = (byte) (pixBytes[i] | mask);
+				}
+			}
+		}
+
+		return pixBytes;
+	}
 
 //	private class PrintWithUsb implements Runnable {
 //		private MonochromImage monoimg;
@@ -578,7 +604,7 @@ public class EpsonESCPOSPrinter {
 //		
 //		@Override
 //		public void run() {
-//			if (SelfPi.usePrinterGraphicCommand) {
+//			if (App.usePrinterGraphicCommand) {
 //				sendWithPipe(getByteArray(DL_TO_GRAPHIC));
 //				sendWithPipe(monoimg.getDitheredBits(mode));
 //				sendWithPipe(getByteArray(PRINT_GRAPHIC_BUF));
@@ -588,7 +614,7 @@ public class EpsonESCPOSPrinter {
 //				sendWithPipe(getByteArray(PRINT_PRINT_BUF));
 //			}
 //			
-//			if (SelfPi.printFunnyQuote) {
+//			if (App.printFunnyQuote) {
 //				if (mode == TicketMode.HISTORIC) {
 //					sendWithPipe(monoimg.getFilenumberInBytes());
 //				} else {
@@ -631,7 +657,7 @@ public class EpsonESCPOSPrinter {
 //			}
 //		}
 //	}
-        
+/*        
 	public static void main(String[] args) throws SecurityException, UsbException {
 		File imgFile = new File("/home/pi/Download.png");
 		EpsonESCPOSPrinter p = new EpsonESCPOSPrinter((short) 0x0e15);
@@ -640,7 +666,7 @@ public class EpsonESCPOSPrinter {
 		p.close();
 	}
 
-	
+*/	
 //	public static void main(String[] args) throws SecurityException, UsbException {
 //		// TESTS :
 //		// Search for epson TM-T20
